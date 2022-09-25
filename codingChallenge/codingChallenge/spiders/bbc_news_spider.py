@@ -70,23 +70,19 @@ class BbcNewsSpider(scrapy.Spider):
         None
         """
         response_status = response.status
-
         if response_status == 200:
             #TODO find a way to yield the final link via a recursive process (consider digging deeper into CralwerSpider docs: seems easy automation once docs are understood)
-            for r in response.css("a.nw-o-link"): # class of a tags in news navigation
+            for r in response.css("nav.nw-c-nav__wide a.nw-o-link"): # class of a tags in news navigation
                 
                 # # some news categories contain sub-categories with links of same class => loop again
                 # #TODO check if a function could be defined to process the final article link and remove redundancy
         
                 news_category_link = r.css("::attr(href)").get()
-                processed_news_category_link = self.bbc_pipeline.process_news_link(news_category_link)
+                processed_news_category_link = self.bbc_pipeline.process_news_categories_link(news_category_link)
                 
-                if processed_news_category_link is None:
-                    continue
-
-                final_news_category_link = urljoin(response.url, processed_news_category_link)
-
-                yield scrapy.Request(final_news_category_link, callback=self.parse_news_sub_categories_links)
+                if processed_news_category_link is not None:
+                    final_news_category_link = urljoin(response.url, processed_news_category_link)
+                    yield scrapy.Request(final_news_category_link, callback=self.parse_news_sub_categories_links)
 
         else:
             logger.warning(f"The response status was {response_status}")
@@ -101,32 +97,40 @@ class BbcNewsSpider(scrapy.Spider):
         response
             html response
 
-        Returns
+        Returns-
         -------
         None
         """
         response_status = response.status
-
         if response_status == 200:
+            sub_links_response = response.css("nav.nw-c-nav__wide-secondary a.nw-o-link")
+            res = sub_links_response.get()
 
-            for r in response.css("nav.nw-c-nav__wide-secondary a.nw-o-link"):
-                news_sub_categories_link = r.css("::attr(href)").get()
-                processed_news_sub_categories_link = self.bbc_pipeline.process_news_link(news_sub_categories_link)
-                
-                if processed_news_sub_categories_link is None:
-                    continue
+            if res is None:
+                for r in response.css("a.gs-c-promo-heading.gs-o-faux-block-link__overlay-link.nw-o-link-split__anchor"):
+                    news_articles_link = r.css("::attr(href)").get()
+                    processed_news_category_link = self.bbc_pipeline.process_news_articles_links(news_articles_link)
+                    yield scrapy.Request(processed_news_category_link, callback=self.parse_news_article_items)
 
-                final_news_sub_category_link = urljoin(response.url, processed_news_sub_categories_link)
-
-                yield scrapy.Request(final_news_sub_category_link, callback=self.parse_news_articles_links)
-                
+            else:
+                for r in sub_links_response:
+                    news_sub_categories_link = r.css("::attr(href)").get()
+                    
+                    if news_sub_categories_link is not None:
+                        if "http" in news_sub_categories_link:
+                            final_news_sub_category_link = news_sub_categories_link
+                        else:
+                            final_news_sub_category_link = urljoin(response.url, news_sub_categories_link)
+                    
+                    yield scrapy.Request(final_news_sub_category_link, callback=self.parse_news_sub_categories_links)
+                    
         else:
             logger.warning(f"The response status was {response_status}")
-
-    def parse_news_articles_links(self, response):
+    
+    def parse_news_article_items(self, response):
         """
-        Takes the response from the yielded scrapy request in self.parse_news_sub_categories_links() (for every iteration), and scrapes the links for news articles.
-        It then yields a request to self.parse_news_articles() to start scraping the news article for each news article link.
+        Takes the response (the link for a news article) from the yielded scrapy request in self.parse_news_articles_links() (for every iteration),
+        and scrapes the available info in a news article. It then yields a JSON object containing the scraped info.
 
         Parameters
         ----------
@@ -142,26 +146,19 @@ class BbcNewsSpider(scrapy.Spider):
         if response_status == 200:
             
             item = NewsArticleItem()
-            item['title'] = response.xpath('//h1[@id="main-heading"]/text()').get()
+            title = response.xpath('//h1[@id="main-heading"]/text()').get()
+            if title is not None:
+                item['title'] = title
+                item['category'] = ""
 
-            # yield item
+                authors = response.xpath('//*[@id="main-content"]/div[5]/div/div[1]/article/header/p/span/strong//text()').get().replace("By ", "")
+                if "by " == authors[:3].lower():
+                    authors = authors[3:]
+                item["authors"] = authors
+
+                
+
+                yield item
 
         else:
             logger.warning(f"The response status was {response_status}")
-
-    
-    def parse_news_articles(self, response):
-        """
-        Takes the response (the link for a news article) from the yielded scrapy request in self.parse_news_articles_links() (for every iteration),
-        and scrapes the available info in a news article. It then yields a JSON object containing the scraped info.
-
-        Parameters
-        ----------
-        response
-            html response
-
-        Returns
-        -------
-        None
-        """
-        pass
