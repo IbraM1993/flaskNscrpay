@@ -6,7 +6,15 @@
 import scrapy
 
 
-class CodingchallengeItem(scrapy.Item):
+class NewsArticleItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
-    pass
+    title = scrapy.Field()
+    # category = scrapy.Field()
+    # authors = scrapy.Field()
+    # timestamp = scrapy.Field()
+    # tags = scrapy.Field()
+    # img_caption = scrapy.Field()
+    # text = scrapy.Field()
+    # related_stories = scrapy.Field()
+    # related_topics = scrapy.Field
