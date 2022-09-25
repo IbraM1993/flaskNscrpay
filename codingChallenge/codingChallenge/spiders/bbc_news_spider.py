@@ -151,9 +151,12 @@ class BbcNewsSpider(scrapy.Spider):
                 item['title'] = title
                 item['category'] = ""
 
-                authors = response.xpath('//*[@id="main-content"]/div[5]/div/div[1]/article/header/p/span/strong//text()').get().replace("By ", "")
-                if "by " == authors[:3].lower():
-                    authors = authors[3:]
+                authors = response.xpath('//*[@id="main-content"]/div[5]/div/div[1]/article/header/p/span/strong//text()').get()
+                if authors is not None:
+                    if "by " == authors[:3].lower():
+                        authors = authors[3:]
+                else:
+                    authors = ""
                 item["authors"] = authors
 
                 
