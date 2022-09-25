@@ -13,6 +13,20 @@ class CodingchallengePipeline:
         return item
 
     def process_news_link(self, news_link: str) -> str:
+        """
+        Takes a news link and processes it in a way that, once returned, it could be joined with the news URL in the spider (bbc_news_spider.py) to form an accessible link.
+
+        Parameters
+        ----------
+        news_link
+            the news link to be processed
+
+        Returns
+        -------
+        preprocessed_news_link
+            the processed news link that could be joined with the news URL in the spider
+
+        """
         # "/news" is the home button for the news page itself (we do not want it)
         # if "/news" is not in the link, then it is not something related to news
         if news_link == "/news" or "/news" not in news_link or news_link is None:

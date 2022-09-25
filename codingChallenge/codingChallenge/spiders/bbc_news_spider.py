@@ -57,8 +57,8 @@ class BbcNewsSpider(scrapy.Spider):
 
     def parse_news_categories_links(self, response):
         """
-        Takes the response from the yielded scrapy request in self.parse (the news page link), and scrapes the links in the navbar to then scrape all
-        tabs in another function (self.parse_news_articles()).
+        Takes the response from the yielded scrapy request in self.parse() (the news page link), and scrapes the links in the navbar to get the news categories links.
+        It then yields a request to self.parse_news_sub_categories_links() to scrape the news sub-categories links.
 
         Parameters
         ----------
@@ -72,7 +72,7 @@ class BbcNewsSpider(scrapy.Spider):
         response_status = response.status
 
         if response_status == 200:
-            #TODO find a way to yield the final link via a recursive process (consider digging deeper into CralwerSpider docs)
+            #TODO find a way to yield the final link via a recursive process (consider digging deeper into CralwerSpider docs: seems easy automation once docs are understood)
             for r in response.css("a.nw-o-link"): # class of a tags in news navigation
                 
                 # # some news categories contain sub-categories with links of same class => loop again
@@ -93,7 +93,8 @@ class BbcNewsSpider(scrapy.Spider):
         
     def parse_news_sub_categories_links(self, response):
         """
-        Takes the response from the yielded scrapy request in self.parse_news_links (for every iteration), redirects to a news article and scrapes it.
+        Takes the response from the yielded scrapy request in self.parse_news_categories_links() (for every iteration), to then scrape all the news sub-categories in each
+        category (e.g., Africa and Europe in World). It then yields a request to self.parse_news_articles_links() to scrape the news articles links within a sub-category.
 
         Parameters
         ----------
@@ -116,16 +117,16 @@ class BbcNewsSpider(scrapy.Spider):
                     continue
 
                 final_news_sub_category_link = urljoin(response.url, processed_news_sub_categories_link)
-                yield {"link": final_news_sub_category_link}
 
-                yield scrapy.Request(final_news_sub_category_link, callback=self.parse_news_articles)
+                yield scrapy.Request(final_news_sub_category_link, callback=self.parse_news_articles_links)
                 
         else:
             logger.warning(f"The response status was {response_status}")
 
-    def parse_news_articles(self, response):
+    def parse_news_articles_links(self, response):
         """
-        Takes the response from the yielded scrapy request in self.parse_news_links (for every iteration), redirects to a news article and scrapes it.
+        Takes the response from the yielded scrapy request in self.parse_news_sub_categories_links() (for every iteration), and scrapes the links for news articles.
+        It then yields a request to self.parse_news_articles() to start scraping the news article for each news article link.
 
         Parameters
         ----------
@@ -147,3 +148,20 @@ class BbcNewsSpider(scrapy.Spider):
 
         else:
             logger.warning(f"The response status was {response_status}")
+
+    
+    def parse_news_articles(self, response):
+        """
+        Takes the response (the link for a news article) from the yielded scrapy request in self.parse_news_articles_links() (for every iteration),
+        and scrapes the available info in a news article. It then yields a JSON object containing the scraped info.
+
+        Parameters
+        ----------
+        response
+            html response
+
+        Returns
+        -------
+        None
+        """
+        pass
