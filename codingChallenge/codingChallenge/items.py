@@ -12,7 +12,7 @@ class NewsArticleItem(scrapy.Item):
     title = scrapy.Field()
     category = scrapy.Field()
     authors = scrapy.Field()
-    # timestamp = scrapy.Field()
+    timestamp = scrapy.Field()
     # tags = scrapy.Field()
     # img_caption = scrapy.Field()
     # text = scrapy.Field()

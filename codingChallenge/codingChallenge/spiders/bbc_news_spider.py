@@ -1,8 +1,11 @@
 import scrapy
+from urllib.parse import urljoin
+from datetime import datetime
+from datetime import timezone
+import logging
+
 from ..pipelines import CodingchallengePipeline
 from ..items import NewsArticleItem
-from urllib.parse import urljoin
-import logging
 
 logger = logging.getLogger(__name__)
 # c_handler = logging.StreamHandler()
@@ -47,7 +50,8 @@ class BbcNewsSpider(scrapy.Spider):
                 raise Exception("News page link not found: check your code or if the css selection is no longer valid...")
 
             if len(news_page_link): # len is used to avoid empty strings
-                yield scrapy.Request(news_page_link, callback=self.parse_news_categories_links)
+                category = news_page_link.split("/")[-1]
+                yield scrapy.Request(news_page_link, callback=self.parse_news_categories_links, meta={"category": category})
                 
             else:
                 logger.warning(f"Could not identify the news page link. The result was {news_page_link}...")
@@ -71,6 +75,7 @@ class BbcNewsSpider(scrapy.Spider):
         """
         response_status = response.status
         if response_status == 200:
+            category = response.meta.get("category")
             #TODO find a way to yield the final link via a recursive process (consider digging deeper into CralwerSpider docs: seems easy automation once docs are understood)
             for r in response.css("nav.nw-c-nav__wide a.nw-o-link"): # class of a tags in news navigation
                 
@@ -82,7 +87,7 @@ class BbcNewsSpider(scrapy.Spider):
                 
                 if processed_news_category_link is not None:
                     final_news_category_link = urljoin(response.url, processed_news_category_link)
-                    yield scrapy.Request(final_news_category_link, callback=self.parse_news_sub_categories_links)
+                    yield scrapy.Request(final_news_category_link, callback=self.parse_news_sub_categories_links, meta={"category": category})
 
         else:
             logger.warning(f"The response status was {response_status}")
@@ -103,6 +108,7 @@ class BbcNewsSpider(scrapy.Spider):
         """
         response_status = response.status
         if response_status == 200:
+            category = response.meta.get("category")
             sub_links_response = response.css("nav.nw-c-nav__wide-secondary a.nw-o-link")
             res = sub_links_response.get()
 
@@ -110,7 +116,7 @@ class BbcNewsSpider(scrapy.Spider):
                 for r in response.css("a.gs-c-promo-heading.gs-o-faux-block-link__overlay-link.nw-o-link-split__anchor"):
                     news_articles_link = r.css("::attr(href)").get()
                     processed_news_category_link = self.bbc_pipeline.process_news_articles_links(news_articles_link)
-                    yield scrapy.Request(processed_news_category_link, callback=self.parse_news_article_items)
+                    yield scrapy.Request(processed_news_category_link, callback=self.parse_news_article_items, meta={"category": category})
 
             else:
                 for r in sub_links_response:
@@ -122,7 +128,7 @@ class BbcNewsSpider(scrapy.Spider):
                         else:
                             final_news_sub_category_link = urljoin(response.url, news_sub_categories_link)
                     
-                    yield scrapy.Request(final_news_sub_category_link, callback=self.parse_news_sub_categories_links)
+                    yield scrapy.Request(final_news_sub_category_link, callback=self.parse_news_sub_categories_links, meta={"category": category})
                     
         else:
             logger.warning(f"The response status was {response_status}")
@@ -148,8 +154,8 @@ class BbcNewsSpider(scrapy.Spider):
             item = NewsArticleItem()
             title = response.xpath('//h1[@id="main-heading"]/text()').get()
             if title is not None:
-                item['title'] = title
-                item['category'] = ""
+                item["title"] = title
+                item["category"] = response.meta.get("category")
 
                 authors = response.xpath('//*[@id="main-content"]/div[5]/div/div[1]/article/header/p/span/strong//text()').get()
                 if authors is not None:
@@ -159,7 +165,14 @@ class BbcNewsSpider(scrapy.Spider):
                     authors = ""
                 item["authors"] = authors
 
-                
+                timestamp_response = response.xpath('//*[@id="main-content"]/div[5]/div/div[1]/article/header/div[1]/ul/div/li/div[2]/span/span/time')
+                timestamp = timestamp_response.css("::attr(datetime)").get()
+                if timestamp is not None:
+                    processed_timestamp = datetime.fromisoformat(timestamp[:-1]).astimezone(timezone.utc)
+                    processed_timestamp = processed_timestamp.strftime('%Y-%m-%d %H:%M:%S')
+                else:
+                    processed_timestamp = ""
+                item["timestamp"] = processed_timestamp
 
                 yield item
 
