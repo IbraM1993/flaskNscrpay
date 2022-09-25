@@ -174,6 +174,16 @@ class BbcNewsSpider(scrapy.Spider):
                     processed_timestamp = ""
                 item["timestamp"] = processed_timestamp
 
+                tags_response = response.xpath('//*[@id="main-content"]/div[5]/div/div[1]/article/header/div[2]/div[2]/div/ul/li/a')
+                if tags_response is not None:
+                    tags_txt = tags_response.css("::text").getall()
+                    tags_links = tags_response.css("::attr(href)").getall()
+                else:
+                    tags_txt = []
+                    tags_links = []
+                item["tags_text"] = tags_txt
+                item["tags_links"] = tags_links
+
                 yield item
 
         else:
