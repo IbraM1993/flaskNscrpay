@@ -153,7 +153,9 @@ class BbcNewsSpider(scrapy.Spider):
             
             item = NewsArticleItem()
             title = response.xpath('//h1[@id="main-heading"]/text()').get()
-            if title is not None:
+            text = response.xpath('//*[@id="main-content"]').css('article div[data-component="text-block"] p ::text').getall()
+            
+            if title is not None and text is not None or text != []:
                 item["title"] = title
                 item["category"] = response.meta.get("category")
 
@@ -165,7 +167,7 @@ class BbcNewsSpider(scrapy.Spider):
                     authors = ""
                 item["authors"] = authors
 
-                timestamp_response = response.xpath('//*[@id="main-content"]/div[5]/div/div[1]/article/header/div[1]/ul/div/li/div[2]/span/span/time')
+                timestamp_response = response.xpath('//*[@id="main-content"]').css("article time")
                 timestamp = timestamp_response.css("::attr(datetime)").get()
                 if timestamp is not None:
                     processed_timestamp = datetime.fromisoformat(timestamp[:-1]).astimezone(timezone.utc)
@@ -174,7 +176,7 @@ class BbcNewsSpider(scrapy.Spider):
                     processed_timestamp = ""
                 item["timestamp"] = processed_timestamp
 
-                tags_response = response.xpath('//*[@id="main-content"]/div[5]/div/div[1]/article/header/div[2]/div[2]/div/ul/li/a')
+                tags_response = response.xpath('//*[@id="main-content"]').css("article a")
                 if tags_response is not None:
                     tags_txt = tags_response.css("::text").getall()
                     tags_links = tags_response.css("::attr(href)").getall()
@@ -184,7 +186,15 @@ class BbcNewsSpider(scrapy.Spider):
                 item["tags_text"] = tags_txt
                 item["tags_links"] = tags_links
 
-                yield item
+                text = " ".join([ t if t[-1] == "." else t + "." for t in text ])
+                item["article_text"] = text
+
+                yield {"a": text}
+                item["url"] = response.url
+                yield {"url": response.url}
+
+
+                # yield item
 
         else:
             logger.warning(f"The response status was {response_status}")
