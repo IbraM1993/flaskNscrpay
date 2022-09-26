@@ -23,6 +23,8 @@ class BbcNewsSpider(scrapy.Spider):
     # Spider class requirement: a function with the name "parse" must be defined
     bbc_pipeline = CodingchallengePipeline()
 
+    #TODO double check and optimize xpath and css selectors
+
     def parse(self, response):
         """
         Takes the html response from the home page and fetch the link for the news page.
@@ -155,10 +157,11 @@ class BbcNewsSpider(scrapy.Spider):
             title = response.xpath('//h1[@id="main-heading"]/text()').get()
             text = response.xpath('//*[@id="main-content"]').css('article div[data-component="text-block"] p ::text').getall()
             
-            if title is not None and text is not None or text != []:
+            if title is not None and text is not None and text != [] and text != "":
                 item["title"] = title
                 item["category"] = response.meta.get("category")
 
+                #TODO move processing of responses to pipelines
                 authors = response.xpath('//*[@id="main-content"]/div[5]/div/div[1]/article/header/p/span/strong//text()').get()
                 if authors is not None:
                     if "by " == authors[:3].lower():
