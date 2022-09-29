@@ -192,12 +192,12 @@ class BbcNewsSpider(scrapy.Spider):
                 text = " ".join([ t if t[-1] == "." else t + "." for t in text ])
                 item["article_text"] = text
 
-                yield {"a": text}
                 item["url"] = response.url
-                yield {"url": response.url}
 
+                item["related_stories"] = response.css('div[data-component="links-block"] p.ssrcss-17zglt8-PromoHeadline span::text').getall()
+                item["related_topics"] = response.css('section[data-component="tag-list"] a::text').getall()
 
-                # yield item
+                yield item
 
         else:
             logger.warning(f"The response status was {response_status}")

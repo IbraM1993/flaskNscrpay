@@ -17,5 +17,5 @@ class NewsArticleItem(scrapy.Item):
     tags_links = scrapy.Field()
     article_text = scrapy.Field()
     url = scrapy.Field()
-    # related_stories = scrapy.Field()
-    # related_topics = scrapy.Field
+    related_stories = scrapy.Field()
+    related_topics = scrapy.Field()
