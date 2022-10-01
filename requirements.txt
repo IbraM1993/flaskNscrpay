@@ -1,0 +1,5 @@
+itemadapter==0.7.0
+pymongo==4.2.0
+Scrapy==2.6.2
+Flask==2.2.2
+Flask_PyMongo==2.3.0
