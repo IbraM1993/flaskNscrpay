@@ -1,11 +1,11 @@
 import scrapy
 from urllib.parse import urljoin
-from datetime import datetime
-from datetime import timezone
 import logging
 
 from ..pipelines import CodingchallengePipeline
 from ..items import NewsArticleItem
+
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 # c_handler = logging.StreamHandler()
@@ -173,12 +173,9 @@ class BbcNewsSpider(scrapy.Spider):
 
                 timestamp_response = response.xpath('//*[@id="main-content"]').css("article time")
                 timestamp = timestamp_response.css("::attr(datetime)").get()
-                if timestamp is not None:
-                    processed_timestamp = datetime.fromisoformat(timestamp[:-1]).astimezone(timezone.utc)
-                    processed_timestamp = processed_timestamp.strftime('%Y-%m-%d %H:%M:%S')
-                else:
-                    processed_timestamp = ""
-                item["timestamp"] = processed_timestamp
+                if timestamp is None:
+                    timestamp = ""
+                item["article_date"] = timestamp
 
                 tags_response = response.xpath('//*[@id="main-content"]').css("article a")
                 if tags_response is not None:
@@ -197,6 +194,8 @@ class BbcNewsSpider(scrapy.Spider):
 
                 item["related_stories"] = response.css('div[data-component="links-block"] p.ssrcss-17zglt8-PromoHeadline span::text').getall()
                 item["related_topics"] = response.css('section[data-component="tag-list"] a::text').getall()
+
+                item["CREATED"] = datetime.now()
 
                 yield item
 
