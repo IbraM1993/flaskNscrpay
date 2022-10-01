@@ -9,8 +9,8 @@
 
 BOT_NAME = 'codingChallenge'
 
-SPIDER_MODULES = ['codingChallenge.spiders']
-NEWSPIDER_MODULE = 'codingChallenge.spiders'
+SPIDER_MODULES = ['codingChallenge.codingChallenge.spiders']
+NEWSPIDER_MODULE = 'codingChallenge.codingChallenge.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
@@ -68,8 +68,8 @@ MONGODB_COLLECTION = "news" #TODO create the collection dynamically within the p
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'codingChallenge.pipelines.CodingchallengePipeline': 100,
-   'codingChallenge.pipelines.MongoDBPipeline': 200
+   'codingChallenge.codingChallenge.pipelines.CodingchallengePipeline': 100,
+   'codingChallenge.codingChallenge.pipelines.MongoDBPipeline': 200
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

@@ -3,6 +3,10 @@ from flask_pymongo import PyMongo
 
 import helpers as helpers
 
+from codingChallenge.codingChallenge.spiders import bbc_news_spider
+from scrapy.crawler import CrawlerProcess
+from scrapy.utils.project import get_project_settings
+
 app = Flask(__name__)
 
 MONGO_URI = "mongodb+srv://IbraM:1993@cluster0.8hgixtg.mongodb.net/bbc"
@@ -10,6 +14,11 @@ app.config["MONGO_URI"] = MONGO_URI
 
 connection = PyMongo(app)
 keyword = helpers.get_keyword_from_CLI()
+
+# settings = get
+process = CrawlerProcess(get_project_settings())
+process.crawl(bbc_news_spider.BbcNewsSpider)
+process.start()
 
 @app.route("/")
 def home():
@@ -27,4 +36,4 @@ def news_by_keyword():
     return render_template("news_by_keyword.html", data=helpers.get_news_articles_by_keyword(connection, keyword))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
