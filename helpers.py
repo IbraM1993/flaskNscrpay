@@ -48,10 +48,11 @@ def to_json(data) -> str:
     """
     return json.dumps(data, default=json_util.default)
 
-def check_for_articles_in_db(connection: PyMongo) -> bool:
+def check_if_no_articles_in_db(connection: PyMongo) -> bool:
     #TODO remove function once a scheduler for the spcaring is implemented
     """
     Queries the database for a single entry to find out if any data exist. If so, this will prevent the scraping from running.
+    Also, the user might specify to run the scrape when the application runs for the first time.
     
     Parameters
     ----------
@@ -64,10 +65,16 @@ def check_for_articles_in_db(connection: PyMongo) -> bool:
         True if an item was found; False otherwise
     """
     result = connection.db.news.find_one()
+    # if there is an item in the DB
     if result:
-        return True
+        run_scraping = input("Would you like to run the scarping? yes for yes and no for no...\n") # ask user if he wants to re-run the scrapes
+
+        if run_scraping.lower()[0] == "y":
+            return True
+
+        return False # user does not want to re-run the scraping
     
-    return False
+    return True # no items in DB => don't ask user and run scraping (we could inform him of that...)
 
 def get_all_news_articles(connection: PyMongo) -> str:
     """
