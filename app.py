@@ -15,9 +15,10 @@ app.config["MONGO_URI"] = MONGO_URI
 connection = PyMongo(app)
 # keyword = helpers.get_keyword_from_CLI()
 
-process = CrawlerProcess(get_project_settings())
-process.crawl(bbc_news_spider.BbcNewsSpider)
-process.start()
+if not helpers.check_for_articles_in_db(connection):
+    process = CrawlerProcess(get_project_settings())
+    process.crawl(bbc_news_spider.BbcNewsSpider)
+    process.start()
 
 @app.route("/")
 def home():

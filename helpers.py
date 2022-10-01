@@ -48,6 +48,27 @@ def to_json(data) -> str:
     """
     return json.dumps(data, default=json_util.default)
 
+def check_for_articles_in_db(connection: PyMongo) -> bool:
+    #TODO remove function once a scheduler for the spcaring is implemented
+    """
+    Queries the database for a single entry to find out if any data exist. If so, this will prevent the scraping from running.
+    
+    Parameters
+    ----------
+    connection
+        the MongoDB connection
+
+    Returns
+    -------
+    bool
+        True if an item was found; False otherwise
+    """
+    result = connection.db.news.find_one()
+    if result:
+        return True
+    
+    return False
+
 def get_all_news_articles(connection: PyMongo) -> str:
     """
     Queries the database for all news.
@@ -84,12 +105,16 @@ def get_news_articles_by_keyword(connection: PyMongo, keyword: str) -> str:
     str
         a JSON format of the data fetched from the queried MongoDB object
     """
-    print(keyword)
+    keyword_lower = keyword.lower()
+    keyword_cap = keyword.capitalize()
+
     results = connection.db.news.find(
         {
             "$or": [
-                { "title": {"$regex": ".*" + keyword + ".*"} },
-                { "article_text": {"$regex": ".*" + keyword + ".*"} }
+                { "title": {"$regex": ".*" + keyword_lower + ".*"} },
+                { "title": {"$regex": ".*" + keyword_cap + ".*"} },
+                { "article_text": {"$regex": ".*" + keyword_lower + ".*"} },
+                { "article_text": {"$regex": ".*" + keyword_cap + ".*"} }
             ]
         }
     )
