@@ -5,7 +5,7 @@ import helpers as helpers
 
 app = Flask(__name__)
 
-MONGO_URI = "mongodb://localhost:27017/bbc"
+MONGO_URI = "mongodb+srv://IbraM:1993@cluster0.8hgixtg.mongodb.net/bbc"
 app.config["MONGO_URI"] = MONGO_URI
 
 connection = PyMongo(app)
@@ -27,4 +27,4 @@ def news_by_keyword():
     return render_template("news_by_keyword.html", data=helpers.get_news_articles_by_keyword(connection, keyword))
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

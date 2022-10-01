@@ -113,8 +113,7 @@ class MongoDBPipeline(object):
         SETTINGS = get_project_settings()
 
         self.__connection = pymongo.MongoClient(
-            host = SETTINGS["MONGODB_URI"],
-            port = SETTINGS["MONGODB_PORT"]
+            host = SETTINGS["MONGODB_URI"]
         )
         db = self.__connection[SETTINGS["MONGODB_DB"]]
         self.__collection = db[SETTINGS["MONGODB_COLLECTION"]]

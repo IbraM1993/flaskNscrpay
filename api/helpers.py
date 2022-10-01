@@ -30,7 +30,7 @@ def get_keyword_from_CLI() -> str:
         
         i += 1
 
-    return keyword
+    return keyword.lower()
 
 def to_json(data) -> str:
     """
@@ -62,7 +62,7 @@ def get_all_news_articles(connection: PyMongo) -> str:
     str
         a JSON format of the data fetched from the queried MongoDB object
     """
-    results = connection.db.news_2.find()
+    results = connection.db.news.find()
     
     news_articles = [ result for result in results ]
     return to_json(news_articles)
@@ -84,7 +84,7 @@ def get_news_articles_by_keyword(connection: PyMongo, keyword: str) -> str:
     str
         a JSON format of the data fetched from the queried MongoDB object
     """
-    results = connection.db.news_2.find(
+    results = connection.db.news.find(
         {
             "$or": [
                 { "title": {"$regex": ".*" + keyword + ".*"} },
