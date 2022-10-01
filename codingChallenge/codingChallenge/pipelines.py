@@ -10,9 +10,12 @@ from itemadapter import ItemAdapter
 import pymongo
 from scrapy.utils.project import get_project_settings
 
-SETTINGS = get_project_settings()
-
 class CodingchallengePipeline:
+    """
+    DESCRIPTION:
+    ------------
+    * This pipeline is used to process data within the scraping flow.
+    """
     def process_item(self, item, spider):
         return item
 
@@ -68,6 +71,19 @@ class CodingchallengePipeline:
         return processed_link
 
     def process_news_articles_links(self, link: str) -> str:
+        """
+        Takes a news article link, check for it if it is complete, and if it is not, it concatinates it to the news section link to form an acessible link.
+
+        Parameters
+        ----------
+        link
+            the news article link to be processed
+
+        Returns
+        -------
+        processed_link
+            the processed article news link that could be joined with the news URL in the spider
+        """
         if "http" in link[:10]:
             return link
 
@@ -79,15 +95,60 @@ class MongoDBPipeline(object):
     DESCRIPTION:
     ------------
     * This pipeline is used to insert data in to MongoDB.
-    * MongoDB setting are provided in settings.py
+    * MongoDB settings are provided in settings.py
     """
     def __init__(self):
-        connection = pymongo.MongoClient(
+        """
+        Constructor for the MongoDB pipeline instance. It creates a connection and configures it based on the MongoDB settings in settings.py.
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        object
+            an instance of the class MongoDBPipeline
+        """
+        #TODO consider security for settings (could be defined as an attribute from the spider class)
+        SETTINGS = get_project_settings()
+
+        self.__connection = pymongo.MongoClient(
             host = SETTINGS["MONGODB_URI"],
             port = SETTINGS["MONGODB_PORT"]
         )
-        db = connection[SETTINGS["MONGODB_DB"]]
-        self.collection = db[SETTINGS["MONGODB_COLLECTION"]]
+        db = self.__connection[SETTINGS["MONGODB_DB"]]
+        self.__collection = db[SETTINGS["MONGODB_COLLECTION"]]
 
-    def process_item(self, item, spider):    
-        self.collection.insert_one(dict(item))
+    def process_item(self, item: dict, spider):
+        """
+        Inserts an item into the MongoDB collection.
+
+        Parameters
+        ----------
+        item
+            the dictionary that contains the yielded item from scraping a news article.
+
+        spider
+            the scrapy crawler
+
+        Returns
+        -------
+        object
+            an instance of the class MongoDBPipeline 
+        """
+        self.__collection.insert_one(dict(item))
+
+    def close_connection(self, spider):
+        """
+        Closes the connection with MongoDB.
+
+        Parameters
+        ----------
+        spider
+            the scrapy crawler
+
+        Returns
+        -------
+        None    
+        """
+        self.__connection.close()
