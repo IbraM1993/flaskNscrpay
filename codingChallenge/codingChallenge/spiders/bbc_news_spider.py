@@ -48,6 +48,7 @@ class BbcNewsSpider(scrapy.Spider):
 
             # we could define a class for custom exceptions
             #TODO check if css class for the target a tag exists first in the html response and throw the error there if it does not
+            #TODO move the checks to pipelines.py
             if news_page_link is None:
                 raise Exception("News page link not found: check your code or if the css selection is no longer valid...")
 

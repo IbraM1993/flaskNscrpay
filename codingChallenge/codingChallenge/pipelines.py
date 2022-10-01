@@ -7,6 +7,10 @@
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 
+import pymongo
+from scrapy.utils.project import get_project_settings
+
+SETTINGS = get_project_settings()
 
 class CodingchallengePipeline:
     def process_item(self, item, spider):
@@ -69,3 +73,21 @@ class CodingchallengePipeline:
 
         else:
             return f"https://www.bbc.com{link}"
+
+class MongoDBPipeline(object):
+    """
+    DESCRIPTION:
+    ------------
+    * This pipeline is used to insert data in to MongoDB.
+    * MongoDB setting are provided in settings.py
+    """
+    def __init__(self):
+        connection = pymongo.MongoClient(
+            host = SETTINGS["MONGODB_URI"],
+            port = SETTINGS["MONGODB_PORT"]
+        )
+        db = connection[SETTINGS["MONGODB_DB"]]
+        self.collection = db[SETTINGS["MONGODB_COLLECTION"]]
+
+    def process_item(self, item, spider):    
+        self.collection.insert_one(dict(item))
