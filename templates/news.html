@@ -7,8 +7,17 @@
 </head>
 
 <body>
+    <form action="/news_by_keyword" method="POST" name="search_keyword">            
+        {{ data['search_keyword'].csrf_token }}
+        <input type="text" id="search_keyword" name="search_keyword" placeholder="Search for keyword..." required>
+        <button name="submit" type="submit">
+            Submit
+        </button>
+    </form>
     <div>
-        <p>{{data}}</p>
+        <p>
+            {{ data['json_data'] }}
+        </p>
     </div>
 </body>
 

@@ -48,7 +48,7 @@ def to_json(data) -> str:
     """
     return json.dumps(data, default=json_util.default)
 
-def check_if_no_articles_in_db(connection: PyMongo) -> bool:
+def check_if_no_articles_in_db(connection: PyMongo, run_scraping: str) -> bool:
     #TODO remove function once a scheduler for the spcaring is implemented
     """
     Queries the database for a single entry to find out if any data exist. If so, this will prevent the scraping from running.
@@ -59,6 +59,9 @@ def check_if_no_articles_in_db(connection: PyMongo) -> bool:
     connection
         the MongoDB connection
 
+    run_scraping
+        user choice regarding whether to run scraping or not even if there were data in the database
+
     Returns
     -------
     bool
@@ -67,8 +70,8 @@ def check_if_no_articles_in_db(connection: PyMongo) -> bool:
     result = connection.db.news.find_one()
     # if there is an item in the DB
     if result:
-        run_scraping = input("Would you like to run the scarping? yes for yes and no for no...\n") # ask user if he wants to re-run the scrapes
-
+        # run_scraping = input("Would you like to run the scarping? yes for yes and no for no...\n") # ask user if he wants to re-run the scrapes
+        # run_scraping = "No"
         if run_scraping.lower()[0] == "y":
             return True
 
@@ -112,6 +115,9 @@ def get_news_articles_by_keyword(connection: PyMongo, keyword: str) -> str:
     str
         a JSON format of the data fetched from the queried MongoDB object
     """
+    if keyword == "":
+        return to_json([])
+
     keyword_lower = keyword.lower()
     keyword_cap = keyword.capitalize()
 

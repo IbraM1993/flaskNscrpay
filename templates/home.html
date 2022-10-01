@@ -8,14 +8,13 @@
 
 <body>
     <div>
-        <ul>
-            <li>
-                <a href="/news">News</a>
-            </li>
-            <li>
-                <a href="/news_by_keyword">News by Keyword</a>
-            </li>
-        </ul>
+        <form action="/news" method="POST" name="run_scraping">            
+            {{ data['run_scraping'].csrf_token }}
+            <input type="text" id="run_scraping" name="run_scraping" placeholder="Run scraping?" required>
+            <button name="submit" type="submit">
+                Submit
+            </button>
+        </form>
     </div>
 </body>
 
