@@ -13,9 +13,8 @@ MONGO_URI = "mongodb+srv://IbraM:1993@cluster0.8hgixtg.mongodb.net/bbc"
 app.config["MONGO_URI"] = MONGO_URI
 
 connection = PyMongo(app)
-keyword = helpers.get_keyword_from_CLI()
+# keyword = helpers.get_keyword_from_CLI()
 
-# settings = get
 process = CrawlerProcess(get_project_settings())
 process.crawl(bbc_news_spider.BbcNewsSpider)
 process.start()
@@ -33,6 +32,7 @@ def news():
 @app.route("/news_by_keyword", methods=["GET"])
 def news_by_keyword():
     """ Renders the news by keyword page which consists of filtered news based on user input """
+    keyword = input("Input keyword to query DB:")
     return render_template("news_by_keyword.html", data=helpers.get_news_articles_by_keyword(connection, keyword))
 
 if __name__ == '__main__':
