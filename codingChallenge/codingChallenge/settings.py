@@ -20,7 +20,7 @@ NEWSPIDER_MODULE = 'codingChallenge.spiders'
 ROBOTSTXT_OBEY = True
 
 # MongoDB configs
-MONGODB_URI = "mongodb+srv://IbraM:1993@cluster0.8hgixtg.mongodb.net/bbc"
+MONGODB_URI = "mongodb+srv://<user>:<pass>@cluster0.8hgixtg.mongodb.net/bbc"
 MONGODB_DB = "bbc"
 MONGODB_COLLECTION = "news" #TODO create the collection dynamically within the pipeline
 
