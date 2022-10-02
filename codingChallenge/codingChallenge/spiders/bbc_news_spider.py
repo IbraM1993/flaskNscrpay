@@ -15,16 +15,21 @@ logger = logging.getLogger(__name__)
 class BbcNewsSpider(scrapy.Spider):
     name = "bbc_spider"
     # allowed_domains = ["www.bbc.com"]
+    myBaseUrl = "http://www.bbc.com/"
     start_urls = ["https://www.bbc.com/"]
     # base_url = "http://www.bbc.com/"
     # rules = [Rule(LinkExtractor(allow="news/"),
     #                 callback="parse_news_links", follow=True)]
 
+    def __init__(self, category: str="", **kwargs):
+        self.myBaseUrl = category
+        self.start_urls.append(self.myBaseUrl)
+        super().__init__(**kwargs)
+
     # Spider class requirement: a function with the name "parse" must be defined
     bbc_pipeline = CodingchallengePipeline()
 
     #TODO double check and optimize xpath and css selectors
-
     def parse(self, response):
         """
         Takes the html response from the home page and fetch the link for the news page.

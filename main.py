@@ -1,7 +1,9 @@
+import crochet
+crochet.setup()
+
 from flask import Flask, render_template, request, redirect, url_for
 from flask_pymongo import PyMongo
 from flask_wtf import FlaskForm
-from flask_executor import Executor
 from wtforms.fields import StringField
 from wtforms import validators, SubmitField
 
@@ -15,9 +17,6 @@ import helpers as helpers
 import time
 import os
 
-import crochet
-crochet.setup()
-
 app = Flask(__name__)
 
 app.config["SECRET_KEY"] = "abc123!@#"
@@ -26,10 +25,11 @@ MONGO_URI = "mongodb+srv://IbraM:1993@cluster0.8hgixtg.mongodb.net/bbc"
 app.config["MONGO_URI"] = MONGO_URI
 connection = PyMongo(app)
 
-# settings_file_path = "codingChallenge.codingChallenge.settings"
-# os.environ.setdefault("SCRAPY_SETTINGS_MODULE", settings_file_path)
+settings_file_path = "codingChallenge.codingChallenge.settings"
+os.environ.setdefault("SCRAPY_SETTINGS_MODULE", settings_file_path)
 SPIDER_SETTINGS = get_project_settings()
 runner = CrawlerRunner(SPIDER_SETTINGS)
+output_data = []
 
 class RunScraping(FlaskForm):
     run_scraping_input = StringField("run_scraping", validators=(validators.DataRequired(),))
@@ -62,17 +62,16 @@ def submit():
 
 @app.route("/scrape")
 def scrape():
-    scrape_with_crochet()
-    time.sleep(50)
+    scrape_with_crochet("http://www.bbc.com/")
+    time.sleep(60)
+    
     return redirect(url_for("news"))
 
 @crochet.run_in_reactor
-def scrape_with_crochet():
-    # This will connect to the dispatcher that will kind of loop the code between these two functions.
+def scrape_with_crochet(url: str):
+    """ For scraping """
     dispatcher.connect(_crawler_result, signal=signals.item_scraped)
-
-     # This will connect to the BbcNewsSpider function in our scrapy file and after each yield will pass to the crawler_result function.
-    eventual = runner.crawl(BbcNewsSpider)
+    eventual = runner.crawl(BbcNewsSpider, category=url)
     return eventual
 
 def _crawler_result(item, response, spider):
@@ -86,7 +85,6 @@ def news():
     data = {"search_keyword": search_keyword_val}
     
     data["json_data"] = helpers.get_all_news_articles(connection)
-    print(1)
     
     return render_template("news.html", data=data)
 
@@ -106,4 +104,4 @@ if __name__ == '__main__':
     # app.config["CUSTOM_EXECUTOR_MAX_WORKERS"] = 5
     # executor = Executor(app, name="custom")
 
-    app.run()
+    app.run(host="0.0.0.0", port=5000)
