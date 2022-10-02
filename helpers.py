@@ -134,3 +134,22 @@ def get_news_articles_by_keyword(connection: PyMongo, keyword: str) -> str:
 
     news_articles = [ result for result in results ]
     return to_json(news_articles)
+
+def inster_to_db(connection: PyMongo, item: dict) -> None:
+        """
+        Inserts an item into the MongoDB collection.
+
+        Parameters
+        ----------
+        conncetion
+            the MongoDB connection
+        
+        item
+            the dictionary that contains the yielded item from scraping a news article.
+        
+        Returns
+        -------
+        object
+            an instance of the class MongoDBPipeline 
+        """
+        connection.db.news.insert_one(dict(item))

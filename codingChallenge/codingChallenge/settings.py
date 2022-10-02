@@ -68,8 +68,8 @@ MONGODB_COLLECTION = "news" #TODO create the collection dynamically within the p
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'codingChallenge.codingChallenge.pipelines.CodingchallengePipeline': 100,
-   'codingChallenge.codingChallenge.pipelines.MongoDBPipeline': 200
+   'codingChallenge.codingChallenge.pipelines.CodingchallengePipeline': 100
+   # 'codingChallenge.codingChallenge.pipelines.MongoDBPipeline': 200
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

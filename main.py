@@ -13,6 +13,7 @@ from codingChallenge.codingChallenge.spiders.bbc_news_spider import BbcNewsSpide
 
 import helpers as helpers
 import time
+import os
 
 import crochet
 crochet.setup()
@@ -25,7 +26,10 @@ MONGO_URI = "mongodb+srv://IbraM:1993@cluster0.8hgixtg.mongodb.net/bbc"
 app.config["MONGO_URI"] = MONGO_URI
 connection = PyMongo(app)
 
+# settings_file_path = "codingChallenge.codingChallenge.settings"
+# os.environ.setdefault("SCRAPY_SETTINGS_MODULE", settings_file_path)
 SPIDER_SETTINGS = get_project_settings()
+runner = CrawlerRunner(SPIDER_SETTINGS)
 
 class RunScraping(FlaskForm):
     run_scraping_input = StringField("run_scraping", validators=(validators.DataRequired(),))
@@ -36,8 +40,6 @@ class SearchKeyword(FlaskForm):
     submit = SubmitField("Submit")
 
 # keyword = helpers.get_keyword_from_CLI()
-
-runner = CrawlerRunner(SPIDER_SETTINGS)
 
 @app.route("/")
 def home():
@@ -53,7 +55,6 @@ def submit():
         request_data = request.form
         run_scraping_val = request_data["run_scraping"]
         if helpers.check_if_no_articles_in_db(connection, run_scraping_val):
-            print(1)
             return redirect(url_for("scrape")) # Passing to the Scrape function
 
         else:
@@ -62,14 +63,20 @@ def submit():
 @app.route("/scrape")
 def scrape():
     scrape_with_crochet()
-    time.sleep(30)
+    time.sleep(50)
     return redirect(url_for("news"))
 
 @crochet.run_in_reactor
-def scrape_with_crochet():    
-    # This will connect to the ReviewspiderSpider function in our scrapy file and after each yield will pass to the crawler_result function.
+def scrape_with_crochet():
+    # This will connect to the dispatcher that will kind of loop the code between these two functions.
+    dispatcher.connect(_crawler_result, signal=signals.item_scraped)
+
+     # This will connect to the BbcNewsSpider function in our scrapy file and after each yield will pass to the crawler_result function.
     eventual = runner.crawl(BbcNewsSpider)
     return eventual
+
+def _crawler_result(item, response, spider):
+    helpers.inster_to_db(connection, dict(item))
 
 @app.route("/news", methods=["GET", "POST"])
 def news():
@@ -79,6 +86,7 @@ def news():
     data = {"search_keyword": search_keyword_val}
     
     data["json_data"] = helpers.get_all_news_articles(connection)
+    print(1)
     
     return render_template("news.html", data=data)
 
@@ -94,8 +102,8 @@ def news_by_keyword():
 
 if __name__ == '__main__':
     # to scrape in the background
-    app.config["EXECUTOR_TYPE"] = "thread"
-    app.config["CUSTOM_EXECUTOR_MAX_WORKERS"] = 5
-    executor = Executor(app, name="custom")
+    # app.config["EXECUTOR_TYPE"] = "thread"
+    # app.config["CUSTOM_EXECUTOR_MAX_WORKERS"] = 5
+    # executor = Executor(app, name="custom")
 
     app.run()

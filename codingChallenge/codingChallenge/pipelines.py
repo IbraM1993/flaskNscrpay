@@ -90,64 +90,64 @@ class CodingchallengePipeline:
         else:
             return f"https://www.bbc.com{link}"
 
-class MongoDBPipeline(object):
-    """
-    DESCRIPTION:
-    ------------
-    * This pipeline is used to insert data in to MongoDB.
-    * MongoDB settings are provided in settings.py
-    """
-    def __init__(self):
-        """
-        Constructor for the MongoDB pipeline instance. It creates a connection and configures it based on the MongoDB settings in settings.py.
-        Parameters
-        ----------
-        None
+# class MongoDBPipeline(object):
+#     """
+#     DESCRIPTION:
+#     ------------
+#     * This pipeline is used to insert data in to MongoDB.
+#     * MongoDB settings are provided in settings.py
+#     """
+#     def __init__(self):
+#         """
+#         Constructor for the MongoDB pipeline instance. It creates a connection and configures it based on the MongoDB settings in settings.py.
+#         Parameters
+#         ----------
+#         None
 
-        Returns
-        -------
-        object
-            an instance of the class MongoDBPipeline
-        """
-        #TODO consider security for settings (could be defined as an attribute from the spider class)
-        SETTINGS = get_project_settings()
+#         Returns
+#         -------
+#         object
+#             an instance of the class MongoDBPipeline
+#         """
+#         #TODO consider security for settings (could be defined as an attribute from the spider class)
+#         SETTINGS = get_project_settings()
 
-        self.__connection = pymongo.MongoClient(
-            host = SETTINGS["MONGODB_URI"]
-        )
-        db = self.__connection[SETTINGS["MONGODB_DB"]]
-        self.__collection = db[SETTINGS["MONGODB_COLLECTION"]]
+#         self.__connection = pymongo.MongoClient(
+#             host = SETTINGS["MONGODB_URI"]
+#         )
+#         db = self.__connection[SETTINGS["MONGODB_DB"]]
+#         self.__collection = db[SETTINGS["MONGODB_COLLECTION"]]
 
-    def process_item(self, item: dict, spider):
-        """
-        Inserts an item into the MongoDB collection.
+#     def process_item(self, item: dict, spider):
+#         """
+#         Inserts an item into the MongoDB collection.
 
-        Parameters
-        ----------
-        item
-            the dictionary that contains the yielded item from scraping a news article.
+#         Parameters
+#         ----------
+#         item
+#             the dictionary that contains the yielded item from scraping a news article.
 
-        spider
-            the scrapy crawler
+#         spider
+#             the scrapy crawler
 
-        Returns
-        -------
-        object
-            an instance of the class MongoDBPipeline 
-        """
-        self.__collection.insert_one(dict(item))
+#         Returns
+#         -------
+#         object
+#             an instance of the class MongoDBPipeline 
+#         """
+#         self.__collection.insert_one(dict(item))
 
-    def close_connection(self, spider):
-        """
-        Closes the connection with MongoDB.
+    # def close_connection(self, spider):
+    #     """
+    #     Closes the connection with MongoDB.
 
-        Parameters
-        ----------
-        spider
-            the scrapy crawler
+    #     Parameters
+    #     ----------
+    #     spider
+    #         the scrapy crawler
 
-        Returns
-        -------
-        None    
-        """
-        self.__connection.close()
+    #     Returns
+    #     -------
+    #     None    
+    #     """
+    #     self.__connection.close()
