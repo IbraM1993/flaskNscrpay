@@ -1,15 +1,21 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from flask_pymongo import PyMongo
 from flask_wtf import FlaskForm
 from flask_executor import Executor
 from wtforms.fields import StringField
 from wtforms import validators, SubmitField
 
-import helpers as helpers
-
-from codingChallenge.codingChallenge.spiders import bbc_news_spider
-from scrapy.crawler import CrawlerProcess
+from scrapy.crawler import CrawlerRunner
+from scrapy.signalmanager import dispatcher
+from scrapy import signals
 from scrapy.utils.project import get_project_settings
+from codingChallenge.codingChallenge.spiders.bbc_news_spider import BbcNewsSpider
+
+import helpers as helpers
+import time
+
+import crochet
+crochet.setup()
 
 app = Flask(__name__)
 
@@ -31,14 +37,9 @@ class SearchKeyword(FlaskForm):
 
 # keyword = helpers.get_keyword_from_CLI()
 
+runner = CrawlerRunner(SPIDER_SETTINGS)
 
-process = CrawlerProcess(SPIDER_SETTINGS)
-
-def start_scraping():
-    process.crawl(bbc_news_spider.BbcNewsSpider)
-    process.start()
-
-@app.route("/", methods=["GET", "POST"])
+@app.route("/")
 def home():
     """ Renders the home page which consists of two links: "News to all the news, and News by Keyword for the filtered news based on user input """
     run_scraping = RunScraping()
@@ -46,15 +47,33 @@ def home():
     
     return render_template("home.html", data=data)
 
+@app.route("/", methods=["POST"])
+def submit():
+    if request.method == "POST":
+        request_data = request.form
+        run_scraping_val = request_data["run_scraping"]
+        if helpers.check_if_no_articles_in_db(connection, run_scraping_val):
+            print(1)
+            return redirect(url_for("scrape")) # Passing to the Scrape function
+
+        else:
+            return redirect(url_for("news"))
+
+@app.route("/scrape")
+def scrape():
+    scrape_with_crochet()
+    time.sleep(30)
+    return redirect(url_for("news"))
+
+@crochet.run_in_reactor
+def scrape_with_crochet():    
+    # This will connect to the ReviewspiderSpider function in our scrapy file and after each yield will pass to the crawler_result function.
+    eventual = runner.crawl(BbcNewsSpider)
+    return eventual
+
 @app.route("/news", methods=["GET", "POST"])
 def news():
     """ Renders the news page which consists of all the news articles in the database """
-    request_data = request.form
-    run_scraping_val = request_data["run_scraping"]
-    print(run_scraping_val)
-    if helpers.check_if_no_articles_in_db(connection, run_scraping_val):
-        executor.submit(start_scraping)
-
     search_keyword = SearchKeyword()
     search_keyword_val = search_keyword.search_keyword_input.data
     data = {"search_keyword": search_keyword_val}

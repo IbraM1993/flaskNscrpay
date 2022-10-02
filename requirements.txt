@@ -5,4 +5,5 @@ Flask==2.2.2
 Flask_PyMongo==2.3.0
 Flask-WTF==1.0.1
 Flask-Executor==1.0.0
+corchet==2.0.0
 pymongo[tls,srv]

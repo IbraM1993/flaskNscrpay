@@ -8,7 +8,7 @@
 
 <body>
     <div>
-        <form action="/news" method="POST" name="run_scraping">            
+        <form action="/" method="POST" name="run_scraping">            
             {{ data['run_scraping'].csrf_token }}
             <input type="text" id="run_scraping" name="run_scraping" placeholder="Run scraping?" required>
             <button name="submit" type="submit">
