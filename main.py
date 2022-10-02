@@ -21,7 +21,7 @@ app = Flask(__name__)
 
 app.config["SECRET_KEY"] = "abc123!@#"
 
-MONGO_URI = "mongodb+srv://IbraM:1993@cluster0.8hgixtg.mongodb.net/bbc"
+MONGO_URI = "mongodb+srv://<user>:<pass>@cluster0.8hgixtg.mongodb.net/bbc"
 app.config["MONGO_URI"] = MONGO_URI
 connection = PyMongo(app)
 
