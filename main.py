@@ -104,4 +104,5 @@ if __name__ == '__main__':
     # app.config["CUSTOM_EXECUTOR_MAX_WORKERS"] = 5
     # executor = Executor(app, name="custom")
 
-    app.run(host="0.0.0.0", port=5000)
+    app.run()
+    # app.run(host="0.0.0.0", port=5000)
